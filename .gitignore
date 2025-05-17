@@ -1,0 +1,33 @@
+# Arquivos de sistema
+.DS_Store
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.so
+
+# Logs e arquivos temporários
+*.log
+*.pid
+*.tmp
+*.bak
+
+# Arquivos zipados e binários
+*.zip
+*.tar.gz
+*.egg-info/
+*.sqlite3
+
+# Diretórios internos de dados
+.data/
+cookies.txt
+# simulations/data.zip  <--- REMOVIDO para que o zip seja incluído no git
+
+# Configurações de IDEs
+.vscode/
+.idea/
+
+# Arquivos específicos do ngrok e cache
+/tmp/ngrok.log
+/tmp/ngrok_keepalive.*
+
