@@ -12,8 +12,10 @@ __pycache__/
 *.tmp
 *.bak
 
-# Arquivos zipados e binários
+# Arquivos zipados e binários (exceto o necessário)
 *.zip
+!simulations/data.zip
+
 *.tar.gz
 *.egg-info/
 *.sqlite3
@@ -21,7 +23,6 @@ __pycache__/
 # Diretórios internos de dados
 .data/
 cookies.txt
-# simulations/data.zip  <--- REMOVIDO para que o zip seja incluído no git
 
 # Configurações de IDEs
 .vscode/
