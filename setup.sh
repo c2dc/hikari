@@ -11,6 +11,31 @@ error_exit() {
   exit 1
 }
 
+check_command() {
+  command -v "$1" &>/dev/null || {
+    info "'$1' não encontrado. Instalando..."
+    sudo apt update -qq
+    sudo apt install -y "$1"
+  }
+}
+
+check_docker_compose() {
+  if ! command -v docker &>/dev/null; then
+    error_exit "Docker não está instalado. Por favor, instale-o manualmente."
+  fi
+  if ! docker compose version &>/dev/null; then
+    info "'docker compose' não disponível. Instalando plugin..."
+    sudo apt update -qq
+    sudo apt install -y docker-compose-plugin
+  fi
+}
+
+# ------------------ Verificações de dependências ------------------
+info "Verificando dependências..."
+check_command curl
+check_command unzip
+check_docker_compose
+
 # ------------------ Inicialização ------------------
 info "Inicializando o ambiente HIKARI..."
 
@@ -20,7 +45,7 @@ CTFD_DIR="$ROOT_DIR/CTFd-HIKARI"
 RUN_ALL="$SCRIPTS_DIR/run-all.sh"
 UP_SH="$CTFD_DIR/up.sh"
 
-# ------------------ Verificações ------------------
+# ------------------ Verificações de arquivos ------------------
 [ -x "$RUN_ALL" ] || error_exit "Script run-all.sh não encontrado ou sem permissão: $RUN_ALL"
 [ -f "$UP_SH" ] || error_exit "Script up.sh não encontrado: $UP_SH"
 
