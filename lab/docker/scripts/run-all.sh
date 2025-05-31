@@ -1,15 +1,19 @@
 #!/bin/bash
 set -euo pipefail
 
+# Diretório base do script atual
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$BASE_DIR/../../../" && pwd)"
+CTFD_DIR="$PROJECT_ROOT/CTFd-HIKARI"
+
 info() { echo -e "\e[32m[INFO]\e[0m $1"; }
 fail() { echo -e "\e[31m[ERRO]\e[0m $1"; exit 1; }
 
 info "Atualizando pacotes e instalando o curl..."
 sudo apt update -qq && sudo apt install -y -qq curl
 
-info "Parando CTfd, se estiver rodando..."
-cd /home/ubuntu/hikari/CTFd-HIKARI || fail "CTFd-HIKARI não encontrado!"
+info "Parando CTFd, se estiver rodando..."
+cd "$CTFD_DIR" || fail "CTFd-HIKARI não encontrado!"
 docker-compose down -v || true
 cd - > /dev/null
 
@@ -46,7 +50,7 @@ do
 done
 
 info "Iniciando CTFd..."
-cd /home/ubuntu/hikari/CTFd-HIKARI || fail "CTFd-HIKARI não encontrado!"
+cd "$CTFD_DIR" || fail "CTFd-HIKARI não encontrado!"
 if docker ps | grep -q ctfd-hikari-ctfd; then
   info "CTFd já está rodando. Pulando."
 else
