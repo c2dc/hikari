@@ -22,9 +22,21 @@ check_command() {
 ensure_docker_with_compose() {
   if ! command -v docker &>/dev/null || ! docker compose version &>/dev/null; then
     info "Docker ou plugin 'docker compose' não encontrado. Instalando via script oficial..."
-    curl -fsSL https://get.docker.com | sh -s -- --force
+    curl -fsSL https://get.docker.com | sh
   else
     info "Docker e plugin 'docker compose' já estão instalados."
+  fi
+}
+
+check_disk_space() {
+  local MIN_GB=10
+  local AVAILABLE_KB
+  AVAILABLE_KB=$(df --output=avail / | tail -1)
+  local AVAILABLE_GB=$((AVAILABLE_KB / 1024 / 1024))
+  if [ "$AVAILABLE_GB" -lt "$MIN_GB" ]; then
+    error_exit "Espaço insuficiente: ${AVAILABLE_GB}GB disponíveis. Mínimo recomendado: ${MIN_GB}GB."
+  else
+    info "Espaço em disco suficiente: ${AVAILABLE_GB}GB disponíveis."
   fi
 }
 
@@ -32,6 +44,7 @@ ensure_docker_with_compose() {
 info "Verificando dependências..."
 check_command curl
 check_command unzip
+check_disk_space
 ensure_docker_with_compose
 
 # ------------------ Inicialização ------------------
