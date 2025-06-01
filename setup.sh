@@ -13,20 +13,18 @@ error_exit() {
 
 check_command() {
   command -v "$1" &>/dev/null || {
-    info "'$1' não encontrado. Instalando..."
+    info "'$1' não encontrado. Instalando via APT..."
     sudo apt update -qq
     sudo apt install -y "$1"
   }
 }
 
-check_docker_compose() {
-  if ! command -v docker &>/dev/null; then
-    error_exit "Docker não está instalado. Por favor, instale-o manualmente."
-  fi
-  if ! docker compose version &>/dev/null; then
-    info "'docker compose' não disponível. Instalando plugin..."
-    sudo apt update -qq
-    sudo apt install -y docker-compose-plugin
+ensure_docker_with_compose() {
+  if ! command -v docker &>/dev/null || ! docker compose version &>/dev/null; then
+    info "Docker ou plugin 'docker compose' não encontrado. Instalando via script oficial..."
+    curl -fsSL https://get.docker.com | sh -s -- --force
+  else
+    info "Docker e plugin 'docker compose' já estão instalados."
   fi
 }
 
@@ -34,7 +32,7 @@ check_docker_compose() {
 info "Verificando dependências..."
 check_command curl
 check_command unzip
-check_docker_compose
+ensure_docker_with_compose
 
 # ------------------ Inicialização ------------------
 info "Inicializando o ambiente HIKARI..."
@@ -76,4 +74,3 @@ echo ""
 echo -e "⚠️  Observação:"
 echo -e "  - É necessário criar manualmente os usuários no CTFd para cada competidor."
 echo -e "  - Todos os competidores devem utilizar o mesmo usuário de acesso read-only ao Kibana."
-
