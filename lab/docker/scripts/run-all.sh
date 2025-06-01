@@ -9,19 +9,43 @@ CTFD_DIR="$PROJECT_ROOT/CTFd-HIKARI"
 info() { echo -e "\e[32m[INFO]\e[0m $1"; }
 fail() { echo -e "\e[31m[ERRO]\e[0m $1"; exit 1; }
 
-info "Atualizando pacotes e instalando o curl..."
+# ---------------- Detecta o comando compose ----------------
+get_compose_cmd() {
+  if command -v docker compose &>/dev/null; then
+    echo "docker compose"
+  elif command -v docker-compose &>/dev/null; then
+    echo "docker-compose"
+  else
+    fail "'docker compose' (plugin) ou 'docker-compose' (legacy) não estão disponíveis."
+  fi
+}
+
+COMPOSE_CMD="$(get_compose_cmd)"
+
+# ---------------- Verificações de pré-requisitos ----------------
+command -v docker >/dev/null || fail "Docker não está instalado."
+
+AVAILABLE_SPACE_MB=$(df --output=avail / | tail -1)
+if (( AVAILABLE_SPACE_MB < 2 * 1024 * 1024 )); then
+  fail "Espaço em disco insuficiente (<2GB) para executar containers."
+fi
+
+info "Atualizando pacotes e instalando curl..."
 sudo apt update -qq && sudo apt install -y -qq curl
 
+# ---------------- Parando o CTFd se necessário ----------------
 info "Parando CTFd, se estiver rodando..."
 cd "$CTFD_DIR" || fail "CTFd-HIKARI não encontrado!"
-docker-compose down -v || true
+$COMPOSE_CMD down -v || true
 cd - > /dev/null
 
+# ---------------- Limpeza do ambiente ----------------
 info "Limpando ambiente Docker..."
 CONTAINERS=$(docker ps -q)
 [ -n "$CONTAINERS" ] && docker stop $CONTAINERS || true
 docker container prune -f
 
+# ---------------- Verificação da rede ----------------
 info "Verificando rede 'hikari'..."
 NETWORK_ID=$(docker network ls --filter name=^hikari$ -q)
 if [ -n "$NETWORK_ID" ]; then
@@ -31,6 +55,7 @@ else
   info "Rede 'hikari' será criada automaticamente quando necessário."
 fi
 
+# ---------------- Execução dos scripts ----------------
 for script in \
     start_env.sh \
     setup_kibana.sh \
@@ -49,15 +74,16 @@ do
   fi
 done
 
+# ---------------- Subida do CTFd ----------------
 info "Iniciando CTFd..."
 cd "$CTFD_DIR" || fail "CTFd-HIKARI não encontrado!"
 if docker ps | grep -q ctfd-hikari-ctfd; then
   info "CTFd já está rodando. Pulando."
 else
-  docker-compose up -d
+  $COMPOSE_CMD up -d
   info "CTFd iniciado com sucesso."
 fi
 cd - > /dev/null
 
-info "✅ Todas as etapas foram concluídas."
+info "✅ Todas as etapas foram concluídas com sucesso."
 
