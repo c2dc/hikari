@@ -20,12 +20,14 @@ check_command() {
 }
 
 ensure_docker_with_compose() {
-  if ! command -v docker &>/dev/null || ! docker compose version &>/dev/null; then
+  if ! command -v docker &>/dev/null || { ! docker compose version &>/dev/null && ! command -v docker-compose &>/dev/null; }; then
     info "Docker ou plugin 'docker compose' não encontrado. Instalando via script oficial..."
     curl -fsSL https://get.docker.com | sh
   else
     info "Docker e plugin 'docker compose' já estão instalados."
   fi
+
+  docker info &>/dev/null || error_exit "O usuário atual não tem permissão para usar o Docker. Execute: sudo usermod -aG docker \$USER && reinicie a sessão."
 }
 
 check_disk_space() {
@@ -57,7 +59,9 @@ RUN_ALL="$SCRIPTS_DIR/run-all.sh"
 UP_SH="$CTFD_DIR/up.sh"
 
 # ------------------ Verificações de arquivos ------------------
-[ -x "$RUN_ALL" ] || error_exit "Script run-all.sh não encontrado ou sem permissão: $RUN_ALL"
+[ -d "$CTFD_DIR" ] || error_exit "Diretório CTFd-HIKARI não encontrado: $CTFD_DIR"
+[ -f "$RUN_ALL" ] || error_exit "Script run-all.sh não encontrado: $RUN_ALL"
+[ -x "$RUN_ALL" ] || chmod +x "$RUN_ALL"
 [ -f "$UP_SH" ] || error_exit "Script up.sh não encontrado: $UP_SH"
 
 # ------------------ Execução ------------------
@@ -76,14 +80,20 @@ echo -e "\e[34m====================\e[0m"
 echo -e "\e[34mINSTRUÇÕES DE ACESSO\e[0m"
 echo -e "\e[34m====================\e[0m"
 echo ""
-echo -e "➡ Acesse o Kibana (read-only): http://localhost:5601"
+echo -e "➡ Acesse o Kibana (read-only): http://localhost:5601 (ou IP público da máquina)"
 echo -e "   Usuário: \e[1muser\e[0m"
 echo -e "   Senha:   \e[1muserPass456\e[0m"
 echo ""
-echo -e "➡ Acesse o CTFd (admin): http://localhost:8888"
+echo -e "➡ Acesse o CTFd (admin): http://localhost:8888 (ou IP público da máquina)"
 echo -e "   Usuário: \e[1madmin\e[0m"
 echo -e "   Senha:   \e[1mhikari@2023\e[0m"
 echo ""
-echo -e "⚠️  Observação:"
+echo -e "⚠️  Observações:"
 echo -e "  - É necessário criar manualmente os usuários no CTFd para cada competidor."
 echo -e "  - Todos os competidores devem utilizar o mesmo usuário de acesso read-only ao Kibana."
+echo ""
+echo -e "\e[33mℹ️  O funcionamento correto da plataforma HIKARI depende da disponibilidade das seguintes portas de rede:\e[0m"
+echo -e "   \e[1m2181, 9092, 9200, 5000, 5601, 8000, 80, 8888\e[0m"
+echo -e "   Estas são utilizadas por serviços como ZooKeeper, Kafka, Elasticsearch, Logstash, Kibana, CTFd e outros componentes auxiliares."
+echo -e "   Recomenda-se verificar previamente as configurações de firewall ou segurança do ambiente de execução."
+
