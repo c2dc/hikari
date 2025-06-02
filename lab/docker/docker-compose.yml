@@ -25,9 +25,10 @@ services:
       - ALLOW_ANONYMOUS_LOGIN=yes
     healthcheck:
       test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181", "|", "grep", "imok"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
     logging:
       driver: none
 
@@ -51,9 +52,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null"]
       interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+      timeout: 15s
+      retries: 10
+      start_period: 180s
     networks:
       - hikari
     logging:
@@ -77,9 +78,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -fsSL -u elastic:adminPass123 http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+      timeout: 15s
+      retries: 10
+      start_period: 180s
     logging:
       driver: none
 
@@ -99,9 +100,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -fsSL http://localhost:9600/_node/stats || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+      timeout: 15s
+      retries: 10
+      start_period: 120s
     logging:
       driver: none
 
@@ -123,9 +124,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -fsSL -u elastic:adminPass123 http://localhost:5601/api/status || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+      timeout: 15s
+      retries: 10
+      start_period: 120s
     logging:
       driver: none
 
@@ -151,9 +152,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
-      timeout: 10s
+      timeout: 15s
       retries: 10
-      start_period: 60s
+      start_period: 120s
     logging:
       driver: none
 
